@@ -568,15 +568,6 @@ var controller = (function(budgCtrl, UICtrl){
         
         var data = budgCtrl.getBudg();
         
-        
-        /*
-
-        budget: data.budget,
-              totalInc: data.totals.inc,
-              totalExp: data.totals.exp,
-              percentage: data.percentage
-
-        */
         //1. Remove something
         if(data.budget !== 0 || data.totalInc !== 0 ){
             
