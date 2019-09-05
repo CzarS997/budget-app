@@ -65,7 +65,8 @@ var BudControl = (function(){
     },
     
     budget: 0,
-    percentage: -1
+    percentage: -1,
+    sessLong: []
 }
       
     return {
@@ -78,9 +79,11 @@ var BudControl = (function(){
             if(data.allItems[type].length > 0){
                 
             ID = data.allItems[type][data.allItems[type].length - 1].id + 1;
-                
+            data.sessLong.push(ID);
+
             } else{
-                
+
+                data.sessLong.push(ID);
                 ID = 0;
             }
             //Create new item based on 'inc' or 'exp' type
@@ -199,6 +202,23 @@ var BudControl = (function(){
             data.allItems.exp = [];
             data.allItems.inc = [];
 
+        },
+
+        getLongest: () => {
+            
+            let x,y,z;
+            for(x = 0; x < data.sessLong.length + 1; x++){
+
+                y = x - 1;
+                if(x === 0) {
+                    z = data.sessLong[x];
+                }
+                else if(data.sessLong[x] >= z) {
+                    z = data.sessLong[x];
+                } 
+            };
+
+            return z;
         }
     };
     
@@ -225,7 +245,8 @@ var UIControl = (function(){
         container: '.container',
         expPercLabel: '.item__percentage',
         dateLabel: '.budget__title--month',
-        trash: '.remove_list'
+        trash: '.remove_list',
+        retBin: '.mesBox'
     };
     
     
@@ -456,6 +477,8 @@ var controller = (function(budgCtrl, UICtrl){
     });
         
     document.querySelector(DOM.trash).addEventListener('click',removeItems);
+
+    document.querySelector(DOM.retBin).addEventListener('click', retrieveItems);
         // container is common for both inc and exp
         //  Set EventListener for event delegation
         
@@ -545,7 +568,7 @@ var controller = (function(budgCtrl, UICtrl){
         
         var data = budgCtrl.getBudg();
         
-        console.log(data);
+        
         /*
 
         budget: data.budget,
@@ -571,79 +594,93 @@ var controller = (function(budgCtrl, UICtrl){
              var text = baffle(".mesBox");
              text.set({
              characters: '/██ <▒▒▓> █▒▓<░ ▓░▒ ░░▒▓█ ▒▒/▒ █▓░ ▒▒█▓ ▓█▒>',
-             speed: 120
+             speed: 50
 
             });
             text.start();
             text.reveal(4000);
             
-            document.querySelector('.mesBox').addEventListener('click', () => {
-
-
-                // Retrieve data from sessionStorage
-                const inc = [];
-                const exp = [];
-                const expObj = [];
-                const incObj = [];
-                for(let it = 0 ; it < 5; it++){
-                    if(sessionStorage.getItem("inc," + it) !== null){
-
-                    inc.push("inc," + it + "," +sessionStorage.getItem("inc," + it));
-                    let subSplit = inc[it].split(',');
-                    //console.log(subSplit);
-                    incObj.push(budgCtrl.addItem("inc", subSplit[2], parseFloat(subSplit[3])));
-                    //UICtrl.addListItem(newItem, "inc");
-
-                    } else break;
-
-                };
-
-                
-
-                for(let it = 0 ; it < 5; it++){
-                    if(sessionStorage.getItem("exp," + it) !== null){
-
-                    exp.push("exp," + it + "," + sessionStorage.getItem("exp," + it));
-                    let subSplit = exp[it].split(',');
-                    //console.log(subSplit);
-                    expObj.push(budgCtrl.addItem("exp", subSplit[2], parseFloat(subSplit[3])));
-                    
-                    //UICtrl.addListItem(newItem, "exp");
-                    
-                    } else break;
-
-                };
-                
-
-                //Update UI
-                expObj.forEach( el => {
-                UICtrl.addListItem(el, "exp");
-                });
-
-                incObj.forEach( el => {
-
-                    UICtrl.addListItem(el, "inc");
-
-                });
-
-                //Update percentages and budget
-                updateBudget();
-                updatePerc();
-
-           setTimeout(() => {
-
-            document.querySelector('.mesBox').style.display = 'none';
-
-           }, 3000);
-            
-        });
-
-      
-
     };
 
-
 };
+
+
+    var retrieveItems = () => {
+
+            let ti, ver0, ver1;
+            
+            // Retrieve data from sessionStorage
+            const inc = [];
+            const exp = [];
+            const expObj = [];
+            const incObj = [];
+            const lit = budgCtrl.getLongest();
+          
+            for(let it = 0 ; it < 50; it++){
+
+                
+                ver1 = sessionStorage.getItem("inc," + it);
+
+                if(ver1 != null && ver1 != undefined){
+                inc.push("inc," + it + "," +ver1);
+                let subSplit = inc[it].split(',');
+                incObj.push(budgCtrl.addItem("inc", subSplit[2], parseFloat(subSplit[3])));
+                
+                } else {
+
+                    inc.push(0);
+                    continue;
+                };
+                
+
+            };
+
+           // console.log(incObj);
+            it = 0;
+            for(let it = 0 ; it < 50; it++){
+               
+                ver0 = sessionStorage.getItem("exp," + it)
+                if(ver0 != null && ver0 != undefined){
+
+                exp.push("exp," + it + "," + ver0);
+
+                let subSplit = exp[it].split(',');
+
+                expObj.push(budgCtrl.addItem("exp", subSplit[2], parseFloat(subSplit[3])));
+                
+                } else {
+
+                    inc.push(0);
+                    continue;
+                };
+                
+
+            };
+            //sessionStorage.clear();
+
+            //Update UI
+            expObj.forEach( el => {
+            UICtrl.addListItem(el, "exp");
+            });
+
+            incObj.forEach( el => {
+              
+                UICtrl.addListItem(el, "inc");
+
+            });
+
+            //Update percentages and budget
+            updateBudget();
+            updatePerc();
+
+       setTimeout(() => {
+
+        document.querySelector('.mesBox').style.display = 'none';
+
+       }, 3000);
+        
+
+    };
     
     // The magic of event delegation
     
